@@ -1,0 +1,279 @@
+---
+title: "Final Project"
+author: "Lacey Shivers"
+date: "12/8/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The final project covers all the main components for a statistical analysis required by the final project and in report style. All explanation and coding for reproducibility of analysis is shown through the project, done in Rmarkdown.
+
+The topic I decided on for my final project is major league baseball (MLB) statistics. The statistical data to be used is collected from the official MLB website and is a publicly open source for people to use. The website holds data stats over all the baseball teams and individual league players. The MLB website is updated regular with the newest 2021 season for all players and teams. Looking over the data, an initial observation is the site clearly organized the data to be easily accessible. Being able to bring together the wide variety of data on each player and team, helps cultivate research questions. In choosing this data, I plan on using the data to answer the 'big' statistical question with analytically processing.  
+
+With the MLB data, I am able to come up with a statistical model for analysis of major league baseball teams. Looking over the data for related statistical questions.  
+
+The following project will address a topic of Major League Baseball, laying out the big research question. Overall the project will answer the big question using visualizations, statistical analysis, and have a detailed conclusion. The documentation of data will allow for replication of the data clean up processing and analytically process. The presentation of the project will be in a readable layout for an easy understanding for an outside reader.
+
+# Baseball data; Gathered data
+
+The below data is obtained and downloaded from MLB Stats website (https://www.mlb.com/stats/). The data downloaded contains data covering the hitting and pitching for the 30 MLB teams during the post season. With the post season data for the teams, the batting averages for the teams is included for the 2021 season. All the data obtained will be used to make a thorough analysis on the major league baseball teams, in attempt to answer the question concerning the teams. 
+
+```{r Collected data}
+data1 <- read.csv("exit_velocity (1).CSV") # team hitting post season
+head(data1)
+
+data2 <- read.csv("exit_velocity (2).CSV") # team pitching post season 
+head(data2)
+
+data3 <- read.csv("outs_above_average.CSV") # batting team averages of 2021
+head(data3)
+```
+## cleaning / processing data
+
+After collecting the data from the open source of the most recent data, cleaning the data is the next necessary step. The cleaning process shown below is to done by using processing of filtering out unfinished data. Cleaning out any empty rows and columns to get the most accurate representation of the data for analytically processing.
+
+```{r cleaning data}
+library(tidyverse)
+library(janitor)
+
+# c = clean 
+
+cdata1 <- data1 %>% remove_empty(whic=c("rows"))
+cdata1 <- data1 %>% remove_empty(whic=c("cols"))
+
+cdata2 <- data2 %>% remove_empty(whic=c("rows"))
+cdata2 <- data2 %>% remove_empty(whic=c("cols"))
+
+cdata3 <- data3 %>% remove_empty(whic=c("rows"))
+cdata3 <- data3 %>% remove_empty(whic=c("cols"))
+
+```
+
+The cleaned data above has removed any columns or rows with missing information for each dataset.
+
+## Framing a statistical question with the cleaned MLB data
+
+The cleaned MLB stats data is able to help frame potential answerable questions, in regards to the major league baseball teams. This dataset is reasonable because it pertains strictly to the MLB teams stats. The beginning of the analysis brings on the problem and question of hitters, pitchers and batting team averages.
+
+Do hitters, pitchers, or batting averages of teams have a better relation to the distance and speed of the angle of hits or outs by batting of the baseball teams as a whole? This question will help answer the problem of the most significance for hits by team hitters/ batters and pitchers. The gathered and cleaned datasets are good options for answering the proposed question, because it covers all the aspects of the question. 
+
+## statistical analysis
+
+Analysis for potentially answering the statistical question. Using course learning materials for implementation.
+
+## visualizations 
+
+Visualizations to get an idea of the presented data. Seeing the visualizations to represent the beginning of the analysis. 
+
+```{r visualizations}
+library(GGally) 
+
+ggcorr(cdata1) # correlation plot of cleaned data1
+
+# sample column of strong positive correlated data
+hist(cdata1$avg_hit_speed,freq=FALSE)
+
+qqnorm(cdata1$avg_hit_speed)
+qqline(cdata1$avg_hit_speed)
+
+ggcorr(cdata2) # correlation plot of cleaned data2
+
+# sample column of strong positive correlated data
+hist(cdata2$ev95plus,freq=FALSE)
+
+qqnorm(cdata2$ev95plus)
+qqline(cdata2$ev95plus)
+
+ggcorr(cdata3) # correlation plot of cleaned data1
+
+# sample column of strong positive correlated data
+hist(cdata3$outs_above_average,freq=FALSE)
+
+qqnorm(cdata3$outs_above_average)
+qqline(cdata3$outs_above_average)
+
+```
+The correlations of each dataset shown above allows us to see the relation between all the variables. Using a strongly correlated variable to see if it is compatible against normalcy. As all the chosen variables shown, they have a normal distribution within the datasets. With the correlation plots the columns of data for hitters and pitchers for the post season show a mostly strong positive correlation. As for the batters 2021 average dataset correlation it shows a low correlation between the column variables. Having this information allows us to move into a deeper analysis of the stronger correlated variables for each of the datasets.
+
+## analysis continues
+
+```{r analysis}
+
+# summary analysis of the cleaned datasets
+summary(cdata1)
+summary(cdata2)
+summary(cdata3)
+
+library("ggpubr")
+
+## multiple linear regression 
+
+# dataset1 hitting
+fit1 = lm(avg_hit_angle~avg_hit_speed+avg_distance+avg_hr_distance, data= cdata1)
+summary(fit1)
+
+ggscatter(cdata1,x = "avg_hit_angle", y = "avg_distance", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson")
+
+#dataset2 pitchers # using the same varaibles as dataset1 to see a comparison between hitters and pitchers of the MLB teams
+fit2 = lm(avg_hit_angle~avg_hit_speed+avg_distance+avg_hr_distance, data= cdata2)
+summary(fit2)
+
+ggscatter(cdata2,x = "avg_hit_angle", y = "avg_distance", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson")
+
+#dataset3 batting averages 
+fit3 = lm(outs_above_average~outs_above_average_rhh+outs_above_average_behind+outs_above_average_infront, data= cdata3)
+summary(fit3)
+
+ggscatter(cdata3,x = "outs_above_average", y = "outs_above_average_rhh", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson")
+
+```
+The multiple linear regression shows a relationship between strong positive correlated average variables of the datasets. Using the models for predicting the value of avg_hit_angle based on avg_hit_speed, avg_distance, and avg_hr_distance. The summary of the multiple linear fits shown above, show how significant each coefficient is for each dataset of the teams. Using a scatterplot to see the most significant coefficient for the correlation between the chosen data. 
+
+# analysis continues
+
+Checking the residuals of the linear models to see if multiple linear regression is a good analysis for the major league baseball datasets. The summary of fits for the multiple linear regression shows the coefficients and R squared outputs. For a more clear representation of the outputs, futher analysis will be shown. Looking at the determination of coefficients for each dataset model fit and the residuals to continue to check for a normal distribution.  
+```{r coefficients}
+# coefficient of determination for fit1
+coefficients(fit1)
+summary(fit1)$r.squared
+
+# plot of the residuals to check if the residuals are normally distributed
+f.res1 = resid(fit1)
+qqnorm(f.res1, main ="Residuals check") 
+qqline(f.res1)
+
+# coefficient of determination for fit2
+coefficients(fit2)
+summary(fit2)$r.squared
+
+# plot of the residuals to check if the residuals are normally distributed
+f.res2 = resid(fit2)
+qqnorm(f.res2, main ="Residuals check") 
+qqline(f.res2)
+
+# coefficient of determination for fit1
+coefficients(fit3)
+summary(fit3)$r.squared
+
+# plot of the residuals to check if the residuals are normally distributed
+f.res3 = resid(fit3)
+qqnorm(f.res3, main ="Residuals check") 
+qqline(f.res3)
+
+```
+
+From the above residuals analysis, there is a trend for each of the model fits. With only 1 to 3 outliers and a good trend the results are fair for a continued analysis. 
+
+# analysis continue
+
+The continued analysis using the strong significant coefficients from the multiple linear regression for correlations between the found individual dataset correlation.
+
+```{r continue}
+
+# correlations picked from the significance of the coefficients 
+d = cdata1$avg_distance # distance of hits done by team hitters
+f = cdata1$avg_hit_angle # angle of hit done by team hitters
+cor(d,f) # strong positive correlation
+
+g = cdata2$avg_distance # distance of hits done by team pitchers
+h = cdata2$avg_hit_angle # angle of hit done by team pitchers
+cor(g,h) # highly positive correlation
+
+# checking correlations between the teams for best averages
+ggplot(cdata1, aes(x=avg_hit_angle, y=avg_distance, color= ï..team)) + geom_point()
+
+ggplot(cdata2, aes(x=avg_hit_angle, y=avg_distance, color= ï..team)) + geom_point()
+
+
+# comparing datasets, seeing a better pitching or hitting correlation of the teams. 
+ggplot() +
+  geom_point(data = cdata1, aes(x = avg_hit_angle, y = avg_distance), color= "blue") +
+  geom_point(data = cdata2, aes(x = avg_hit_angle, y = avg_distance)) + geom_abline(intercept = 104, slope = 5)
+
+```
+The correlations of the chosen variables show the data continues to be correlated. With the correlations the above scatterplot visualizations show individual team correlations between the average hitting distance and the average hit angle. The colored teams for the first two scatterplots show which top teams are more accurate for hitting and pitching. The last visualization shows the comparison of the two teams averages overall. Showing that the hitting teams averages are more accurate than the average pitchers teams. 
+
+# analysis continues
+ 
+With similar analysis' outcomes of average hit angles for pitchers and hitters of the major league baseball teams, I decided to combine the first two datasets. The combined dataset will help further the understanding for a more in depth answer concerning the big question. The continued analysis allows for a more thorough and precise analysis. 
+
+```{r continue 2} 
+defaultW <- getOption("warn") # gets rid of warning
+options(warn = -1) 
+
+totaldata <- rbind(cdata1,cdata2) # combines the pitching and hitting teams data
+
+plot(totaldata[,6:9]) # linear pairs 
+
+library(ISLR)
+library(MASS)
+set.seed(1)
+
+# Linear Discriminant Analysis (LDA)
+lda.fit=lda(avg_hit_speed ~ fbld + gb + max_hit_speed ,data=totaldata)
+lda.fit
+
+# Assessing accuracy of a classifier
+lda.pred=predict(lda.fit)
+names(lda.pred)
+
+predicted.class=lda.pred$class
+predicted.class
+
+# Confusion matrix
+table(predicted.class[1:10],totaldata$avg_hit_speed[1:10])
+
+# 5-fold cross validation with MSE
+library(boot)
+library(splines)
+
+mse <- rep(NA, 5)
+for (i in 1:5) {
+    fit <- glm(totaldata$avg_hit_speed ~ ns(totaldata$fbld,i) + totaldata$gb + totaldata$max_hit_speed, data= totaldata)
+    deltas <- cv.glm(totaldata, fit)$delta[1]
+    
+    mse[i] = mean((deltas - predict(fit, newdata = list(dis=totaldata$avg_hit_speed)))^2)
+}
+mse
+plot(mse, type = "l")
+
+# checking the mean mse
+ns.fit <- lm(totaldata$avg_hit_speed ~ ns(totaldata$fbld,i) + totaldata$gb + totaldata$max_hit_speed, data= totaldata)
+
+x <- summary(ns.fit)
+
+mean(x$residuals^2)
+
+```
+The continued analysis shown above is the linear discriminant analysis to show how to the combined totaldata is to find a linear combination of features that characterizes the classes of objects in the data. Using a prediction function to predict the values of the LDA to further check the analysis of the data. checking the prediction of the LDA model with a confusion matrix, brings more clarity. The confusion matrix represents that the prediction was fairly accurate, meaning our totaldata is a great representation for avg_hit_speed, fbld and gb, and max_hit_speed. From the LDA analysis, using natural splines, I checked for the best fitting degree using a 5 k-fold cross validation and computing the mse. The technical output for the analysis is degree 5 being the lowest mse of the totaldata. 
+
+This connects with the beginning analysis because both prove and connect back to the big question. The research answers that there is a relation between the major league baseball stats with reference to the variables. The totaldata concurred that the hitting teams averages are more accurate than the average pitchers teams over the batting outs of the 30 teams as a whole. 
+
+## Conclusion
+
+The project covers a range of analysis that is justified and backed up with reasonable explanation. Understanding that the gathered data has normalcy and are correlated among the variables. This information allowed for a further analysis of multiple linear regression (MLR) and additional analysis with linear discriminant analysis (LDA). 
+
+I selected the methodology by seeing and checking what is the best fit for representing the gathered and cleaned data. The chosen methods mentioned have pros and cons but overall are the necessary methods for presenting the data. The MLR is a pro for being able to determine the relative influence for more than one predictor variables and has the ability to identify outliers. This is useful for correlation purposes. A disadvantage to using the MLR method would be if the data was incomplete, but because of the cleaning process and the columns and rows are filled with complete baseball stats data. As for the LDA method an advantage or pro for this method is that it uses information from both the predictors of totaldata to create a new axis, then in turn minimizes the variance of the multiple variables. As for a con of LDA it requires normal distribution assumption on predictors. However this is not an issue because it was proven/ shown with analysis that the MLB stats data is normally distributed, described in the beginning of the final project analysis. 
+
+With the covered analysis for the data, I do not think additional analysis is required for the statistical question presented. Although for a broader research on major league baseball stats, individual team player stats could be collected. Collecting this data allows for more individual analysis for players instead of teams. This extension of analysis opens up more aspects to be looked into for different statistical questions. I do not think this individual player data is necessary for this final project on teams in the major league baseball.  
+
+In conclusion, the statistical analysis covers how the major league baseball teams as a whole compared in different analysis'. The completed analysis allows for a prediction answer for the statistical problem question of hitting and pitching concerning teams stats. The MLB stats analysis addresses the approach of the question thoroughly in context and explanation. The analysis through out the project is explained in each part by beginning with visualization of the MLB stats data, following with multiple linear regression (MLR) and ending with a 5-fold cross validation technique. The depth of the chosen methods is to further evaluate the MLB data from MLR to using a LDA checked with a 5-fold cross validation technique for the mse. These outcomes help support the prediction of an answer for the thought of statistical question. The question of, 'Do hitters, pitchers, or batting averages of teams have a better relation to the distance and speed of the angle of hits or outs by batting of the baseball teams as a whole?'. From the evaluation of all the Major League Baseball stats data, it is shown that the hitters of the MLB teams averages when related to distance and speed by angle of hits are more significant than the other corresponding aspects. This is also represented in the batters average outs in the data, because they are less related between the outs by hitters. Overall, the depth of analysis was sufficient for this statistical process. Covering from gathering and cleaning the data to providing evidence of analysis for a complete project of major league baseball stats. 
+
+
+
+
+
+
+
+
+
+
